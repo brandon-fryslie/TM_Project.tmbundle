@@ -1,0 +1,14 @@
+TM_Project Bundle for TextMate 2
+================================
+
+This adds a little bit of support for TextMate 1 projects.  At the moment, it will open up a folder from
+your project and the files that were open when it saved, all while not repeatedly crashing TextMate (I hope).
+
+In the future, maybe there will be a tiny command added to save the currently open windows into the project.
+This might be unlikely since it looks like tm_projects are on their way out anyway.
+
+Please report any bugs right away so I can get them fixed.  Either use Github to open an issue or send a short
+message to the TextMate support mailing list and I'll get back to you ASAP.
+
+-------
+Brandon
