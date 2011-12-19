@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+
+require "#{ENV['TM_SUPPORT_PATH']}/lib/textmate"
+require "#{ENV['TM_SUPPORT_PATH']}/lib/ui"
+
+# Get some use out of your TextMate projects
+# 
+# Things I tried that didn't pan out
+# 
+# Setting up the folder includes/excludes
+# Too difficult to do correctly (every folder has a default exclude that may or may not be 
+# modified), so I shouldn't do it at all
+# The user can do that better
+
+data = STDIN.read
+
+begin
+  plist = OSX::PropertyList.load(data)
+rescue
+  puts 'Error'
+end
+
+def resolve_path (path)
+  return ENV['TM_DIRECTORY'] if path == ''
+  if path =~ /^[.]{2}\//
+    return "#{ENV['TM_DIRECTORY'].sub(/\/[^\/]*?\/?$/, '')}/#{path.sub(/^[.]{2}\//, '')}"
+  end
+  if path =~ /^\w/
+    return "#{ENV['TM_DIRECTORY'].sub(/\/$/, '')}/#{path}"
+  end
+  return path
+end
+
+dirs = (plist['documents'] || []).select { |d| d.has_key? 'sourceDirectory' }.map do |doc|
+  resolve_path(doc['sourceDirectory'] || '')
+end 
+
+open_docs = ''
+if plist.has_key? 'openDocuments'
+  open_docs = plist['openDocuments'].map { |p| resolve_path p }.select { |f| File.file?(f) }.join ' '
+end
+
+# Open a dir
+# We pick either the only dir (if there is only one) or
+# the first directory with a .git repo or a .tm_properties file or
+# the first directory
+found_dir = false
+dirs.each do |dir|
+  if File::directory?(dir)
+    `mate #{dir} #{open_docs}`
+    found_dir = true
+    break
+  end
+end
+`mate #{open_docs}` unless found_dir or open_docs.size == 0
+</string>
+	<key>input</key>
+	<string>document</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>name</key>
+	<string>Import TMProject</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>attr.rev-path.tmproj</string>
+	<key>semanticClass</key>
+	<string>callback.document.import</string>
+	<key>uuid</key>
+	<string>C9139E70-E3CF-4BD2-B36C-DE8761E328E4</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>
